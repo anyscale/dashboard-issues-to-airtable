@@ -33,7 +33,7 @@ async function main() {
       owner: "ray-project",
       repo: "ray",
       since: dateAfter.toISOString(),
-      labels: ["bug"],
+      labels: ["dashboard"],
       per_page: 100,
       state: "all",
       pull_request: false,
