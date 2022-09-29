@@ -1,4 +1,4 @@
-# Sync Github Issues to Airtable Database
+# Sync Github Issues related to Ray dashboard to Airtable Database
 
 A bot that periodically (every 1hr) syncs Github Issues to Airtable databases.
 
