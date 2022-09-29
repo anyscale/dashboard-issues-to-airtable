@@ -49,7 +49,6 @@ async function main() {
           Link: issue.html_url,
           CreatedAt: issue.created_at,
           UpdatedAt: issue.updated_at,
-          Body: issue.body,
           State: issue.state,
           Priority: issue.labels.filter((label) =>
             label.name.startsWith("P")
