@@ -13,7 +13,7 @@ const octokit = new (Octokit.plugin(paginateRest))({
 async function main() {
   const issueNumberToRecord = {};
   await base
-    .select({ view: "Ingest (do not edit)", fields: ["Number"] })
+    .select({ view: "Default", fields: ["Number"] })
     .eachPage((records, fetchNextPage) => {
       records.forEach((record) => {
         issueNumberToRecord[record.get("Number")] = record.getId();
