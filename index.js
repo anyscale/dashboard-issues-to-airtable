@@ -81,7 +81,7 @@ async function main() {
       id: issueNumberToRecord[record.fields["Number"].toString()],
       fields: record.fields,
     }));
-    await base.replace(chunk, {
+    await base.update(chunk, {
       typecast: true,
     });
   }
