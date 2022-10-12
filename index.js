@@ -67,7 +67,7 @@ async function main() {
     {
       owner: "ray-project",
       repo: "ray",
-      since: dateAfter.toISOString(),
+      since: dateAfter1.toISOString(),
       labels: ["observability"],
       per_page: 100,
       state: "all",
