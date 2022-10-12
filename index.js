@@ -109,7 +109,7 @@ async function main() {
     .map(([_, record]) => record);
 
   console.log(`Adding ${recordToAdd.length} dashboard records`);
-  console.log(`Adding ${recordToAdd1.length} obsrevability records`);
+  console.log(`Adding ${recordToAdd1.length} observability records`);
   
   for (let i = 0; i < recordToAdd.length; i += 10) {
     const chunk = recordToAdd.slice(i, i + 10);
@@ -124,8 +124,8 @@ async function main() {
     });
   }
 
-  console.log(`Updating ${recordToUpdate.length} records`);
-  console.log(`Updating ${recordToUpdate1.length} records`);
+  console.log(`Updating ${recordToUpdate.length} dashboard records`);
+  console.log(`Updating ${recordToUpdate1.length} observability records`);
   for (let i = 0; i < recordToUpdate.length; i += 10) {
     const chunk = recordToUpdate.slice(i, i + 10).map((record) => ({
       id: issueNumberToRecord[record.fields["Number"].toString()],
