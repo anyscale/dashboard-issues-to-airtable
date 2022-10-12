@@ -26,7 +26,7 @@ async function main() {
 
   const githubIssues = {};
   let dateAfter = new Date();
-  dateAfter.setDate(dateAfter.getDate() - 14);
+  dateAfter.setDate(dateAfter.getDate() - 1000);
   for await (const response of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
