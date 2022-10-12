@@ -94,22 +94,18 @@ async function main() {
   }
   console.log(`Fetched ${Object.keys(githubIssues1).length} observability issues from github`);
 
+  const githubIssues2 = {...githubIssues, ...githubIssues1}
+  console.log(`Merged and got ${Object.keys(githubIssues2).length} dashboard and observability issues from github`);
+  
   const airTableNumbers = new Set(Object.keys(issueNumberToRecord));
-  const recordToAdd = Object.entries(githubIssues)
+  const recordToAdd = Object.entries(githubIssues2)
     .filter(([number, _]) => !airTableNumbers.has(number))
     .map(([_, record]) => record);
-    const recordToAdd1 = Object.entries(githubIssues1)
-    .filter(([number, _]) => !airTableNumbers.has(number))
-    .map(([_, record]) => record);
-  const recordToUpdate = Object.entries(githubIssues)
-    .filter(([number, _]) => airTableNumbers.has(number))
-    .map(([_, record]) => record);
-  const recordToUpdate1 = Object.entries(githubIssues1)
+  const recordToUpdate = Object.entries(githubIssues2)
     .filter(([number, _]) => airTableNumbers.has(number))
     .map(([_, record]) => record);
 
-  console.log(`Adding ${recordToAdd.length} dashboard records`);
-  console.log(`Adding ${recordToAdd1.length} observability records`);
+  console.log(`Adding ${recordToAdd.length} records`);
   
   for (let i = 0; i < recordToAdd.length; i += 10) {
     const chunk = recordToAdd.slice(i, i + 10);
@@ -117,26 +113,11 @@ async function main() {
       typecast: true,
     });
   }
-  for (let i = 0; i < recordToAdd1.length; i += 10) {
-    const chunk = recordToAdd1.slice(i, i + 10);
-    await base.create(chunk, {
-      typecast: true,
-    });
-  }
 
-  console.log(`Updating ${recordToUpdate.length} dashboard records`);
-  console.log(`Updating ${recordToUpdate1.length} observability records`);
+  console.log(`Updating ${recordToUpdate.length} records`);
+
   for (let i = 0; i < recordToUpdate.length; i += 10) {
     const chunk = recordToUpdate.slice(i, i + 10).map((record) => ({
-      id: issueNumberToRecord[record.fields["Number"].toString()],
-      fields: record.fields,
-    }));
-    await base.update(chunk, {
-      typecast: true,
-    });
-  }
-  for (let i = 0; i < recordToUpdate1.length; i += 10) {
-    const chunk = recordToUpdate1.slice(i, i + 10).map((record) => ({
       id: issueNumberToRecord[record.fields["Number"].toString()],
       fields: record.fields,
     }));
