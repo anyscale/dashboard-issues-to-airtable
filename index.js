@@ -26,7 +26,7 @@ async function main() {
 
   const githubIssues = {};
   let dateAfter = new Date();
-  dateAfter.setDate(dateAfter.getDate() - 14);
+  dateAfter.setDate(dateAfter.getDate() - 1200);
   for await (const response of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
@@ -47,6 +47,7 @@ async function main() {
           Labels: issue.labels.map((label) => label.name),
           Milestone: issue.milestone?.title,
           Link: issue.html_url,
+          Assignees: issue.assignees.map((assignee) => assignee.login),  
           CreatedAt: issue.created_at,
           UpdatedAt: issue.updated_at,
           State: issue.state,
@@ -61,7 +62,7 @@ async function main() {
   
   const githubIssues1 = {};
   let dateAfter1 = new Date();
-  dateAfter1.setDate(dateAfter1.getDate() - 1000);
+  dateAfter1.setDate(dateAfter1.getDate() - 1200);
   for await (const response1 of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
@@ -82,6 +83,7 @@ async function main() {
           Labels: issue.labels.map((label) => label.name),
           Milestone: issue.milestone?.title,
           Link: issue.html_url,
+          Assignees: issue.assignees.map((assignee) => assignee.login),  
           CreatedAt: issue.created_at,
           UpdatedAt: issue.updated_at,
           State: issue.state,
