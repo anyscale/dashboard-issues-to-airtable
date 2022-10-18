@@ -26,7 +26,7 @@ async function main() {
 
   const githubIssues = {};
   let dateAfter = new Date();
-  dateAfter.setDate(dateAfter.getDate() - 1200);
+  dateAfter.setDate(dateAfter.getDate() - 1100);
   for await (const response of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
@@ -62,7 +62,7 @@ async function main() {
   
   const githubIssues1 = {};
   let dateAfter1 = new Date();
-  dateAfter1.setDate(dateAfter1.getDate() - 1200);
+  dateAfter1.setDate(dateAfter1.getDate() - 1100);
   for await (const response1 of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
