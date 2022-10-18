@@ -26,7 +26,7 @@ async function main() {
 
   const githubIssues = {};
   let dateAfter = new Date();
-  dateAfter.setDate(dateAfter.getDate() - 1100);
+  dateAfter.setDate(dateAfter.getDate() - 7);
   for await (const response of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
@@ -62,7 +62,7 @@ async function main() {
   
   const githubIssues1 = {};
   let dateAfter1 = new Date();
-  dateAfter1.setDate(dateAfter1.getDate() - 1100);
+  dateAfter1.setDate(dateAfter1.getDate() - 7);
   for await (const response1 of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
@@ -97,6 +97,9 @@ async function main() {
   console.log(`Fetched ${Object.keys(githubIssues1).length} observability issues from github`);
 
   const githubIssues2 = {...githubIssues, ...githubIssues1}
+  
+  console.log(githubIssues2)
+  
   console.log(`Merged and got ${Object.keys(githubIssues2).length} dashboard and observability issues from github`);
   
   const airTableNumbers = new Set(Object.keys(issueNumberToRecord));
