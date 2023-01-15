@@ -20,18 +20,33 @@ const octokit = new (Octokit.plugin(paginateRest))({
 
 
 async function main() {
+  
   // fetch existing oss gh issues from Airtable
-  const issueNumberToRecord = {};
+  const ossIssueNumberToRecord = {};
   await oss_table
-    .select({ view: "Default", fields: ["Number"] })
+    .select({ view: "All", fields: ["Number"] })
     .eachPage((records, fetchNextPage) => {
       records.forEach((record) => {
-        issueNumberToRecord[record.get("Number")] = record.getId();
+        ossIssueNumberToRecord[record.get("Number")] = record.getId();
       });
       fetchNextPage();
     });
   console.log(
-    `Fetched ${Object.keys(issueNumberToRecord).length} records from airtable.`
+    `Fetched ${Object.keys(ossIssueNumberToRecord).length} oss gh records from airtable.`
+  );
+  
+  // fetch existing product gh issues from Airtable
+  const productIssueNumberToRecord = {};
+  await product_table
+    .select({ view: "All", fields: ["Number"] })
+    .eachPage((records, fetchNextPage) => {
+      records.forEach((record) => {
+        productIssueNumberToRecord[record.get("Number")] = record.getId();
+      });
+      fetchNextPage();
+    });
+  console.log(
+    `Fetched ${Object.keys(productIssueNumberToRecord).length} product gh records from airtable.`
   );
 
   // fetch existing oss gh issues from GH
@@ -68,38 +83,107 @@ async function main() {
       };
     }
   }
-  console.log(`Fetched ${Object.keys(ossIssues).length} issues from github`);
+  console.log(`Fetched ${Object.keys(ossIssues).length} product gh issues from github`);
+  
+  
+  // fetch existing product gh issues from GH
+  const productIssues = {};
+  let dateAfter = new Date();
+  dateAfter.setDate(dateAfter.getDate() - 1600);
+  for await (const response of octokit.paginate.iterator(
+    "GET /repos/{owner}/{repo}/issues",
+    {
+      owner: "anyscale",
+      repo: "product",
+      since: dateAfter.toISOString(),
+      per_page: 100,
+      state: "all",
+      pull_request: false,
+    }
+  )) {
+    for (const issue of response.data) {
+      productIssues[issue.number.toString()] = {
+        fields: {
+          Number: issue.number,
+          Title: issue.title,
+          Labels: issue.labels.map((label) => label.name),
+          Milestone: issue.milestone?.title,
+          Link: issue.html_url,
+          Assignees: issue.assignees.map((assignee) => assignee.login),  
+          CreatedAt: issue.created_at,
+          UpdatedAt: issue.updated_at,
+          State: issue.state,
+          Priority: issue.labels.filter((label) =>
+            label.name.startsWith("P")
+          )[0]?.name,
+        },
+      };
+    }
+  }
+  console.log(`Fetched ${Object.keys(productIssues).length} product gh issues from github`);
   
   
   
-// calculate the # of records to add and update
-  const airTableNumbers = new Set(Object.keys(issueNumberToRecord));
-  const recordToAdd = Object.entries(ossIssues)
-    .filter(([number, _]) => !airTableNumbers.has(number))
+  // calculate the # of oss records to add and update
+  const ossAirTableNumbers = new Set(Object.keys(ossIssueNumberToRecord));
+  const ossRecordToAdd = Object.entries(ossIssues)
+    .filter(([number, _]) => !ossAirTableNumbers.has(number))
     .map(([_, record]) => record);
-  const recordToUpdate = Object.entries(ossIssues)
-    .filter(([number, _]) => airTableNumbers.has(number))
+  const ossRecordToUpdate = Object.entries(ossIssues)
+    .filter(([number, _]) => ossAirTableNumbers.has(number))
     .map(([_, record]) => record);
 
-  console.log(`Adding ${recordToAdd.length} records`);
+  console.log(`Adding ${ossRecordToAdd.length} oss records`);
   
-  console.log(`Updating ${recordToUpdate.length} records`);
+  console.log(`Updating ${ossRecordToUpdate.length} oss records`);
   
-// add new records
-  for (let i = 0; i < recordToAdd.length; i += 10) {
-    const chunk = recordToAdd.slice(i, i + 10);
+  // add new oss records
+  for (let i = 0; i < ossRecordToAdd.length; i += 10) {
+    const chunk = ossRecordToAdd.slice(i, i + 10);
     await oss_table.create(chunk, {
       typecast: true,
     });
   }
 
-// Update existing records
-  for (let i = 0; i < recordToUpdate.length; i += 10) {
-    const chunk = recordToUpdate.slice(i, i + 10).map((record) => ({
-      id: issueNumberToRecord[record.fields["Number"].toString()],
+  // Update oss existing records
+  for (let i = 0; i < ossRecordToUpdate.length; i += 10) {
+    const chunk = ossRecordToUpdate.slice(i, i + 10).map((record) => ({
+      id: ossIssueNumberToRecord[record.fields["Number"].toString()],
       fields: record.fields,
     }));
     await oss_table.update(chunk, {
+      typecast: true,
+    });
+  }
+  
+  // calculate the # of product records to add and update
+  const productAirTableNumbers = new Set(Object.keys(productIssueNumberToRecord));
+  const productRecordToAdd = Object.entries(productIssues)
+    .filter(([number, _]) => !productAirTableNumbers.has(number))
+    .map(([_, record]) => record);
+  const productRecordToUpdate = Object.entries(productIssues)
+    .filter(([number, _]) => productAirTableNumbers.has(number))
+    .map(([_, record]) => record);
+
+  console.log(`Adding ${productRecordToAdd.length} product records`);
+  
+  console.log(`Updating ${productRecordToUpdate.length} product records`);
+  
+  // add new product records
+  for (let i = 0; i < productRecordToAdd.length; i += 10) {
+    const chunk = productRecordToAdd.slice(i, i + 10);
+    await product_table.create(chunk, {
+      typecast: true,
+    });
+  }
+
+  // Update existing product records
+  for (let i = 0; i < productRecordToUpdate.length; i += 10) {
+    const chunk = productRecordToUpdate.slice(i, i + 10).map((record) => ({
+      id: productIssueNumberToRecord[record.fields["Number"].toString()],
+      fields: record.fields,
+    }));
+    await product_table.update(chunk, {
       typecast: true,
     });
   }
