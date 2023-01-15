@@ -18,7 +18,6 @@ const octokit = new (Octokit.plugin(paginateRest))({
   auth: process.env.GH_API_TOKEN,
 });
 
-
 // fetch oss gh issues
 async function main() {
   const issueNumberToRecord = {};
