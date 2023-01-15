@@ -1,4 +1,4 @@
-# Sync Github Issues related to Ray observability to Airtable Database
+# Sync OSS Ray Github Issues to Airtable Database
 
 A bot that periodically (every 1hr) syncs Github Issues to Airtable databases.
 
