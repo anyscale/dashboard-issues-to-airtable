@@ -1,18 +1,28 @@
+// env setup
 const Airtable = require("airtable");
 const { Octokit } = require("@octokit/core");
 const { paginateRest } = require("@octokit/plugin-paginate-rest");
 require("dotenv").config();
 
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+
+// fetch airtable info and gh token
+const oss_table = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID
-)(process.env.AIRTABLE_TABLE_ID);
+)(process.env.AIRTABLE_OSS_TABLE_ID);
+
+const product_table = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+  process.env.AIRTABLE_BASE_ID
+)(process.env.AIRTABLE_PRODUCT_TABLE_ID);
+
 const octokit = new (Octokit.plugin(paginateRest))({
   auth: process.env.GH_API_TOKEN,
 });
 
+
+// fetch oss gh issues
 async function main() {
   const issueNumberToRecord = {};
-  await base
+  await oss_table
     .select({ view: "Default", fields: ["Number"] })
     .eachPage((records, fetchNextPage) => {
       records.forEach((record) => {
@@ -96,10 +106,14 @@ async function main() {
   }
   console.log(`Fetched ${Object.keys(githubIssues1).length} observability issues from github`);
 
+  
+// merge the issues
   const githubIssues2 = {...githubIssues, ...githubIssues1}
   
   console.log(`Merged and got ${Object.keys(githubIssues2).length} dashboard and observability issues from github`);
   
+  
+// calculate the # of records to add and update
   const airTableNumbers = new Set(Object.keys(issueNumberToRecord));
   const recordToAdd = Object.entries(githubIssues2)
     .filter(([number, _]) => !airTableNumbers.has(number))
@@ -110,21 +124,23 @@ async function main() {
 
   console.log(`Adding ${recordToAdd.length} records`);
   
+  console.log(`Updating ${recordToUpdate.length} records`);
+  
+// add new records
   for (let i = 0; i < recordToAdd.length; i += 10) {
     const chunk = recordToAdd.slice(i, i + 10);
-    await base.create(chunk, {
+    await oss_table.create(chunk, {
       typecast: true,
     });
   }
 
-  console.log(`Updating ${recordToUpdate.length} records`);
-
+// Update existing records
   for (let i = 0; i < recordToUpdate.length; i += 10) {
     const chunk = recordToUpdate.slice(i, i + 10).map((record) => ({
       id: issueNumberToRecord[record.fields["Number"].toString()],
       fields: record.fields,
     }));
-    await base.update(chunk, {
+    await oss_table.update(chunk, {
       typecast: true,
     });
   }
