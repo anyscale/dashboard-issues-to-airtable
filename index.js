@@ -18,8 +18,9 @@ const octokit = new (Octokit.plugin(paginateRest))({
   auth: process.env.GH_API_TOKEN,
 });
 
-// fetch oss gh issues
+
 async function main() {
+  // fetch existing oss gh issues from Airtable
   const issueNumberToRecord = {};
   await oss_table
     .select({ view: "Default", fields: ["Number"] })
@@ -33,6 +34,7 @@ async function main() {
     `Fetched ${Object.keys(issueNumberToRecord).length} records from airtable.`
   );
 
+  // fetch existing oss gh issues from GH
   const githubIssues = {};
   let dateAfter = new Date();
   dateAfter.setDate(dateAfter.getDate() - 14);
@@ -42,7 +44,6 @@ async function main() {
       owner: "ray-project",
       repo: "ray",
       since: dateAfter.toISOString(),
-      labels: ["dashboard"],
       per_page: 100,
       state: "all",
       pull_request: false,
@@ -67,57 +68,16 @@ async function main() {
       };
     }
   }
-  console.log(`Fetched ${Object.keys(githubIssues).length} dashboard issues from github`);
+  console.log(`Fetched ${Object.keys(githubIssues).length} issues from github`);
   
-  const githubIssues1 = {};
-  let dateAfter1 = new Date();
-  dateAfter1.setDate(dateAfter1.getDate() - 14);
-  for await (const response1 of octokit.paginate.iterator(
-    "GET /repos/{owner}/{repo}/issues",
-    {
-      owner: "ray-project",
-      repo: "ray",
-      since: dateAfter1.toISOString(),
-      labels: ["observability-ux"],
-      per_page: 100,
-      state: "all",
-      pull_request: false,
-    }
-  )) {
-    for (const issue of response1.data) {
-      githubIssues1[issue.number.toString()] = {
-        fields: {
-          Number: issue.number,
-          Title: issue.title,
-          Labels: issue.labels.map((label) => label.name),
-          Milestone: issue.milestone?.title,
-          Link: issue.html_url,
-          Assignees: issue.assignees.map((assignee) => assignee.login),  
-          CreatedAt: issue.created_at,
-          UpdatedAt: issue.updated_at,
-          State: issue.state,
-          Priority: issue.labels.filter((label) =>
-            label.name.startsWith("P")
-          )[0]?.name,
-        },
-      };
-    }
-  }
-  console.log(`Fetched ${Object.keys(githubIssues1).length} observability issues from github`);
-
-  
-// merge the issues
-  const githubIssues2 = {...githubIssues, ...githubIssues1}
-  
-  console.log(`Merged and got ${Object.keys(githubIssues2).length} dashboard and observability issues from github`);
   
   
 // calculate the # of records to add and update
   const airTableNumbers = new Set(Object.keys(issueNumberToRecord));
-  const recordToAdd = Object.entries(githubIssues2)
+  const recordToAdd = Object.entries(githubIssues)
     .filter(([number, _]) => !airTableNumbers.has(number))
     .map(([_, record]) => record);
-  const recordToUpdate = Object.entries(githubIssues2)
+  const recordToUpdate = Object.entries(githubIssues)
     .filter(([number, _]) => airTableNumbers.has(number))
     .map(([_, record]) => record);
 
