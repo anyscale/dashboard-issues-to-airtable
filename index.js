@@ -51,14 +51,14 @@ async function main() {
 
   // fetch existing oss gh issues from GH
   const ossIssues = {};
-  let dateAfter = new Date();
-  dateAfter.setDate(dateAfter.getDate() - 1600);
+  let ossDateAfter = new Date();
+  ossDateAfter.setDate(ossDateAfter.getDate() - 1600);
   for await (const response of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
       owner: "ray-project",
       repo: "ray",
-      since: dateAfter.toISOString(),
+      since: ossDateAfter.toISOString(),
       per_page: 100,
       state: "all",
       pull_request: false,
