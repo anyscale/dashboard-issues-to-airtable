@@ -88,14 +88,14 @@ async function main() {
   
   // fetch existing product gh issues from GH
   const productIssues = {};
-  let dateAfter = new Date();
-  dateAfter.setDate(dateAfter.getDate() - 1600);
+  let productDateAfter = new Date();
+  productDateAfter.setDate(productDateAfter.getDate() - 1600);
   for await (const response of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
       owner: "anyscale",
       repo: "product",
-      since: dateAfter.toISOString(),
+      since: productDateAfter.toISOString(),
       per_page: 100,
       state: "all",
       pull_request: false,
