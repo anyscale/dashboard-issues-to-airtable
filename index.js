@@ -35,9 +35,9 @@ async function main() {
   );
 
   // fetch existing oss gh issues from GH
-  const githubIssues = {};
+  const ossIssues = {};
   let dateAfter = new Date();
-  dateAfter.setDate(dateAfter.getDate() - 14);
+  dateAfter.setDate(dateAfter.getDate() - 1600);
   for await (const response of octokit.paginate.iterator(
     "GET /repos/{owner}/{repo}/issues",
     {
@@ -50,7 +50,7 @@ async function main() {
     }
   )) {
     for (const issue of response.data) {
-      githubIssues[issue.number.toString()] = {
+      ossIssues[issue.number.toString()] = {
         fields: {
           Number: issue.number,
           Title: issue.title,
@@ -68,16 +68,16 @@ async function main() {
       };
     }
   }
-  console.log(`Fetched ${Object.keys(githubIssues).length} issues from github`);
+  console.log(`Fetched ${Object.keys(ossIssues).length} issues from github`);
   
   
   
 // calculate the # of records to add and update
   const airTableNumbers = new Set(Object.keys(issueNumberToRecord));
-  const recordToAdd = Object.entries(githubIssues)
+  const recordToAdd = Object.entries(ossIssues)
     .filter(([number, _]) => !airTableNumbers.has(number))
     .map(([_, record]) => record);
-  const recordToUpdate = Object.entries(githubIssues)
+  const recordToUpdate = Object.entries(ossIssues)
     .filter(([number, _]) => airTableNumbers.has(number))
     .map(([_, record]) => record);
 
