@@ -60,7 +60,7 @@ async function main() {
       repo: "ray",
       since: ossDateAfter.toISOString(),
       per_page: 100,
-      state: "all",
+      state: "open",
       pull_request: false,
     }
   )) {
@@ -97,7 +97,7 @@ async function main() {
       repo: "product",
       since: productDateAfter.toISOString(),
       per_page: 100,
-      state: "all",
+      state: "open",
       pull_request: false,
     }
   )) {
